@@ -1,0 +1,339 @@
+:root {
+  /* Light, clean */
+  --bg: #f6f7fb;
+  --card: rgba(255, 255, 255, 0.86);
+  --text: #111827;
+  --muted: rgba(17, 24, 39, 0.62);
+  --border: rgba(17, 24, 39, 0.1);
+  --border-strong: rgba(17, 24, 39, 0.18);
+
+  --accent: #2563eb; /* blue */
+  --accent-soft: rgba(37, 99, 235, 0.12);
+
+  --radius: 14px;
+
+  /* Splitter */
+  --splitter-w: 10px; /* visual */
+  --splitter-hit: 18px; /* actual */
+  --splitter-line: rgba(17, 24, 39, 0.18);
+  --splitter-line-active: rgba(37, 99, 235, 0.55);
+
+  /* Saved ratio (SV only) */
+  --sv-editor-width: 52%;
+}
+
+/* ===== Hide Vditor preview top action bar (Zhihu / WeChat / etc.) ===== */
+
+/* 顶部那一整条 preview bar */
+.vditor-preview__action {
+  display: none !important;
+}
+
+/* 有些版本用的是这个容器名（兼容处理） */
+.vditor-preview__toolbar {
+  display: none !important;
+}
+
+/* 去掉被 toolbar 占用的顶部间距 */
+.vditor-preview {
+  padding-top: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: radial-gradient(
+      1200px 900px at 10% 0%,
+      rgba(37, 99, 235, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 700px at 90% 0%,
+      rgba(99, 102, 241, 0.06),
+      transparent 55%
+    ),
+    var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    Helvetica, Arial;
+  overflow: hidden;
+}
+
+.topbar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.95),
+    rgba(99, 102, 241, 0.8)
+  );
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.18);
+}
+
+.brand-title {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  font-size: 2rem;
+}
+.brand-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color 0.15s ease, background 0.15s ease,
+    transform 0.06s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+.btn:hover {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.85);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn.primary {
+  border-color: rgba(37, 99, 235, 0.3);
+  background: var(--accent-soft);
+}
+.btn.primary:hover {
+  border-color: rgba(37, 99, 235, 0.5);
+  background: rgba(37, 99, 235, 0.16);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+}
+
+.seg-btn {
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+}
+.seg-btn.active {
+  background: rgba(37, 99, 235, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.22);
+}
+
+.workspace {
+  height: calc(100vh - 56px);
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.card {
+  height: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.1);
+}
+
+#vditor {
+  height: 100%;
+}
+
+/* Blend Vditor into light UI */
+.vditor {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.vditor-toolbar {
+  border-bottom: 1px solid var(--border) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+}
+
+.vditor-toolbar .vditor-toolbar__item {
+  border-radius: 12px;
+}
+
+.vditor-toolbar .vditor-toolbar__item:hover {
+  background: rgba(17, 24, 39, 0.06) !important;
+}
+
+/* SV split layout */
+.vditor .vditor-content {
+  height: calc(100% - 40px);
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+.vditor .vditor-content > pre.vditor-sv {
+  flex: 0 0 var(--sv-editor-width);
+  min-width: 280px;
+  background: rgba(255, 255, 255, 0.55) !important;
+}
+
+.vditor .vditor-content > .vditor-preview {
+  flex: 1 1 auto;
+  min-width: 320px;
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Pretty splitter */
+.vditor .sv-splitter {
+  position: relative;
+  flex: 0 0 var(--splitter-w);
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  z-index: 5;
+}
+
+.vditor .sv-splitter::after {
+  content: "";
+  position: absolute;
+  left: calc((var(--splitter-w) - var(--splitter-hit)) / 2);
+  top: 0;
+  width: var(--splitter-hit);
+  height: 100%;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.vditor .sv-splitter::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--splitter-w) / 2 - 1px);
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--splitter-line),
+    transparent
+  );
+  transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.vditor .sv-splitter:hover::before {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(17, 24, 39, 0.26),
+    transparent
+  );
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.1), 0 0 16px rgba(37, 99, 235, 0.12);
+}
+
+.split-dragging .vditor .sv-splitter::before {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--splitter-line-active),
+    transparent
+  );
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2), 0 0 22px rgba(37, 99, 235, 0.16);
+}
+
+.split-dragging,
+.split-dragging * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+/* Preview typography (light, Typora-ish) */
+.vditor .vditor-preview .vditor-reset {
+  color: var(--text) !important;
+  line-height: 1.7;
+  font-size: 15px;
+  padding: 0 22px 18px 22px;
+}
+
+.vditor .vditor-preview .vditor-reset code {
+  background: rgba(17, 24, 39, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 6px;
+}
+
+.vditor .vditor-preview .vditor-reset pre {
+  background: rgba(17, 24, 39, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  overflow: auto;
+}
+
+.vditor-reset li + li {
+  margin-top: 0;
+}
+
+.toast {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  color: var(--text);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 50;
+  font-size: 13px;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}

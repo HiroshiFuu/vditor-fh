@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vditor (SV/IR) on GitHub Pages</title>
+
+  <!-- Vditor CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor@3.11.2/dist/index.css" />
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-text">
+        <div class="brand-title">Vditor</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="segmented" role="group" aria-label="Mode">
+        <button class="seg-btn" id="btn-mode-sv" type="button">SV</button>
+        <button class="seg-btn" id="btn-mode-ir" type="button">IR</button>
+      </div>
+
+      <button class="btn" id="btn-toggle-preview" type="button" title="Ctrl+P">
+        Toggle Preview
+      </button>
+
+      <button class="btn" id="btn-copy" type="button" title="Ctrl+Shift+C">
+        Copy MD
+      </button>
+
+      <button class="btn primary" id="btn-download" type="button" title="Ctrl+S">
+        Download .md
+      </button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <div class="card">
+      <div id="vditor"></div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vditor@3.11.2/dist/index.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+
+</html>
