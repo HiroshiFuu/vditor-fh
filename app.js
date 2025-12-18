@@ -218,9 +218,7 @@ function setupSvScrollSync(vditorRootEl) {
 /* -----------------------------
  * Init
  * ----------------------------- */
-const initialValue =
-  localStorage.getItem(storage.keyContent) ||
-  "# Notes\n\n- SV 分屏 + splitter\n- 可切换 IR 模式\n\n```js\nconsole.log('hello')\n```\n";
+const initialValue = localStorage.getItem(storage.keyContent);
 
 const initialMode = localStorage.getItem(storage.keyMode) || "sv";
 setActiveModeButtons(initialMode);
