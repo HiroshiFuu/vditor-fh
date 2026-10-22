@@ -2,10 +2,12 @@
 
 const storage = {
   keyContent: "myvditor:content",
-  keyMode: "myvditor:mode", // 'sv' | 'ir'
+  keyMode: "myvditor:mode", // 'sv' | 'ir' | 'viewer'
   keyRatio: "myvditor:svRatio",
   keyPreviewHidden: "myvditor:previewHidden",
 };
+
+let vditor = null;
 
 function toast(msg) {
   const el = document.getElementById("toast");
@@ -31,8 +33,33 @@ function clamp(v, min, max) {
 function setActiveModeButtons(mode) {
   const svBtn = document.getElementById("btn-mode-sv");
   const irBtn = document.getElementById("btn-mode-ir");
+  const viewerBtn = document.getElementById("btn-mode-viewer");
+
   svBtn.classList.toggle("active", mode === "sv");
   irBtn.classList.toggle("active", mode === "ir");
+  viewerBtn.classList.toggle("active", mode === "viewer");
+}
+
+function setWorkspaceMode(mode) {
+  const workspace = document.querySelector(".workspace");
+  const editorCard = document.getElementById("editor-card");
+  const vditorEl = document.getElementById("vditor");
+  const viewerEl = document.getElementById("viewer-content");
+
+  if (!workspace || !editorCard) return;
+
+  const isViewer = mode === "viewer";
+  document.body.classList.toggle("viewer-mode", isViewer);
+  workspace.classList.toggle("viewer-mode", isViewer);
+  editorCard.classList.toggle("viewer-card", isViewer);
+
+  if (vditorEl) {
+    vditorEl.style.display = isViewer ? "none" : "";
+  }
+
+  if (viewerEl) {
+    viewerEl.classList.toggle("hidden", !isViewer);
+  }
 }
 
 function setupSvSplitter(vditorRootEl, opts = {}) {
@@ -45,21 +72,16 @@ function setupSvSplitter(vditorRootEl, opts = {}) {
 
   if (!editor || !preview) return;
 
-  // Find common parent of editor+preview
   let parent = editor.parentElement;
   while (parent && !parent.contains(preview)) parent = parent.parentElement;
   if (!parent) return;
 
   if (parent.querySelector(":scope > .sv-splitter")) return;
 
-  // Restore ratio
   const saved = parseFloat(localStorage.getItem(ratioKey) || "");
   if (!Number.isNaN(saved)) {
     const r = clamp(saved, minRatio, maxRatio);
-    document.documentElement.style.setProperty(
-      "--sv-editor-width",
-      r * 100 + "%"
-    );
+    document.documentElement.style.setProperty("--sv-editor-width", r * 100 + "%");
   }
 
   const splitter = document.createElement("div");
@@ -72,10 +94,7 @@ function setupSvSplitter(vditorRootEl, opts = {}) {
 
   const setRatio = (ratio) => {
     const r = clamp(ratio, minRatio, maxRatio);
-    document.documentElement.style.setProperty(
-      "--sv-editor-width",
-      r * 100 + "%"
-    );
+    document.documentElement.style.setProperty("--sv-editor-width", r * 100 + "%");
     localStorage.setItem(ratioKey, String(r));
   };
 
@@ -107,7 +126,6 @@ function setupSvSplitter(vditorRootEl, opts = {}) {
     window.addEventListener("pointercancel", endDrag, { passive: true });
   });
 
-  // Keyboard resizing
   splitter.addEventListener("keydown", (ev) => {
     const current = parseFloat(localStorage.getItem(ratioKey) || "0.52");
     if (ev.key === "ArrowLeft") {
@@ -147,10 +165,90 @@ function applyPreviewHidden(vditorRootEl, hidden) {
   localStorage.setItem(storage.keyPreviewHidden, hidden ? "1" : "0");
 }
 
+function renderViewerNav() {
+  const nav = document.getElementById("viewer-nav");
+  const viewer = document.getElementById("viewer-content");
+  if (!nav || !viewer) return;
+
+  const headings = Array.from(viewer.querySelectorAll("h1, h2, h3, h4, h5, h6"));
+  nav.innerHTML = "";
+
+  if (!headings.length) {
+    const empty = document.createElement("div");
+    empty.className = "viewer-empty";
+    empty.textContent = "No sections";
+    nav.appendChild(empty);
+    return;
+  }
+
+  const rootList = document.createElement("ul");
+  rootList.className = "viewer-nav-list";
+  const stack = [rootList];
+
+  headings.forEach((heading) => {
+    const level = Number(heading.tagName.replace("H", ""));
+    const parentList = stack[level - 1] || rootList;
+
+    while (stack.length > level) {
+      stack.pop();
+    }
+
+    const item = document.createElement("li");
+    item.className = "viewer-nav-item-wrap";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "viewer-nav-item";
+    btn.textContent = heading.textContent.trim();
+    btn.style.paddingLeft = `${(level - 1) * 10 + 10}px`;
+    btn.addEventListener("click", () => {
+      heading.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    const childList = document.createElement("ul");
+    childList.className = "viewer-nav-sublist";
+    item.appendChild(btn);
+    item.appendChild(childList);
+    parentList.appendChild(item);
+    stack[level] = childList;
+  });
+
+  nav.appendChild(rootList);
+}
+
+function setupViewerMode() {
+  const markdown = localStorage.getItem(storage.keyContent) || "# Welcome\n\nStart writing to view your document here.";
+  const viewerEl = document.getElementById("viewer-content");
+  const editorEl = document.getElementById("vditor");
+
+  if (!viewerEl || !editorEl) return;
+
+  setWorkspaceMode("viewer");
+  viewerEl.innerHTML = "";
+
+  Vditor.preview(viewerEl, markdown, {
+    mode: "light",
+    markdown: {
+      toc: true,
+    },
+    after() {
+      renderViewerNav();
+    },
+  });
+}
+
+function getCurrentMarkdown() {
+  if (vditor && typeof vditor.getValue === "function") {
+    return vditor.getValue();
+  }
+  return localStorage.getItem(storage.keyContent) || "";
+}
+
 function setModeAndReload(mode) {
   localStorage.setItem(storage.keyMode, mode);
   location.reload();
 }
+
 function setupSvScrollSync(vditorRootEl) {
   const editor = vditorRootEl.querySelector("pre.vditor-sv");
   const viewer = vditorRootEl.querySelector(".vditor-preview");
@@ -208,85 +306,77 @@ function setupSvScrollSync(vditorRootEl) {
   editor.addEventListener("scroll", onEditorScroll, { passive: true });
   viewer.addEventListener("scroll", onViewerScroll, { passive: true });
 
-  // 返回一个清理函数（如果你以后要切换模式/重建）
   return () => {
     editor.removeEventListener("scroll", onEditorScroll);
     viewer.removeEventListener("scroll", onViewerScroll);
   };
 }
 
-/* -----------------------------
- * Init
- * ----------------------------- */
-const initialValue = localStorage.getItem(storage.keyContent);
-
+const initialValue = localStorage.getItem(storage.keyContent) || "# Welcome\n\nThis is a Vditor note.";
 const initialMode = localStorage.getItem(storage.keyMode) || "sv";
 setActiveModeButtons(initialMode);
+setWorkspaceMode(initialMode);
 
-const vditor = new Vditor("vditor", {
-  mode: initialMode, // 'sv' | 'ir'
-  height: "100%",
-  cache: { enable: false },
-  value: initialValue,
-  placeholder: "Start writing...",
-  toolbar: [
-    "headings",
-    "bold",
-    "italic",
-    "strike",
-    "|",
-    "list",
-    "ordered-list",
-    "check",
-    "|",
-    "quote",
-    "code",
-    "inline-code",
-    "|",
-    "link",
-    "upload",
-    "table",
-    "|",
-    "preview",
-    "fullscreen",
-    "help",
-  ],
-  input(md) {
-    localStorage.setItem(storage.keyContent, md);
-  },
-  after() {
-    const root = document.getElementById("vditor");
+if (initialMode === "viewer") {
+  setupViewerMode();
+} else {
+  vditor = new Vditor("vditor", {
+    mode: initialMode,
+    height: "100%",
+    cache: { enable: false },
+    value: initialValue,
+    placeholder: "Start writing...",
+    toolbar: [
+      "headings",
+      "bold",
+      "italic",
+      "strike",
+      "|",
+      "list",
+      "ordered-list",
+      "check",
+      "|",
+      "quote",
+      "code",
+      "inline-code",
+      "|",
+      "link",
+      "upload",
+      "table",
+      "|",
+      "preview",
+      "fullscreen",
+      "help",
+    ],
+    input(md) {
+      localStorage.setItem(storage.keyContent, md);
+    },
+    after() {
+      const root = document.getElementById("vditor");
 
-    // Only SV has preview split + splitter
-    if (initialMode === "sv") {
-      setupSvSplitter(root, {
-        ratioKey: storage.keyRatio,
-        minRatio: 0.24,
-        maxRatio: 0.76,
-      });
+      if (initialMode === "sv") {
+        setupSvSplitter(root, {
+          ratioKey: storage.keyRatio,
+          minRatio: 0.24,
+          maxRatio: 0.76,
+        });
 
-      const hidden = localStorage.getItem(storage.keyPreviewHidden) === "1";
-      applyPreviewHidden(root, hidden);
+        const hidden = localStorage.getItem(storage.keyPreviewHidden) === "1";
+        applyPreviewHidden(root, hidden);
+        setupSvScrollSync(root);
+      }
+    },
+  });
+}
 
-      setupSvScrollSync(root);
-    }
-  },
-});
-
-/* -----------------------------
- * Buttons
- * ----------------------------- */
-document
-  .getElementById("btn-mode-sv")
-  .addEventListener("click", () => setModeAndReload("sv"));
-document
-  .getElementById("btn-mode-ir")
-  .addEventListener("click", () => setModeAndReload("ir"));
+document.getElementById("btn-mode-sv").addEventListener("click", () => setModeAndReload("sv"));
+document.getElementById("btn-mode-ir").addEventListener("click", () => setModeAndReload("ir"));
+document.getElementById("btn-mode-viewer").addEventListener("click", () => setModeAndReload("viewer"));
 
 document.getElementById("btn-toggle-preview").addEventListener("click", () => {
   const mode = localStorage.getItem(storage.keyMode) || "sv";
   if (mode !== "sv") {
-    toast("Preview toggle is SV only");
+    toast(mode === "viewer" ? "Preview toggle is not available in Viewer mode" : "Preview toggle is SV only");
     return;
   }
   const root = document.getElementById("vditor");
@@ -296,22 +386,16 @@ document.getElementById("btn-toggle-preview").addEventListener("click", () => {
 });
 
 document.getElementById("btn-copy").addEventListener("click", async () => {
-  const md = vditor.getValue();
+  const md = getCurrentMarkdown();
   await navigator.clipboard.writeText(md);
   toast("Copied");
 });
 
 document.getElementById("btn-download").addEventListener("click", () => {
-  downloadText("note.md", vditor.getValue());
+  downloadText("note.md", getCurrentMarkdown());
   toast("Downloaded");
 });
 
-/* -----------------------------
- * Keyboard shortcuts (global)
- * - Ctrl+S: download
- * - Ctrl+Shift+C: copy
- * - Ctrl+P: toggle preview (SV only) and prevent print
- * ----------------------------- */
 window.addEventListener("keydown", async (ev) => {
   const isMac = navigator.platform.toLowerCase().includes("mac");
   const ctrl = isMac ? ev.metaKey : ev.ctrlKey;
@@ -319,7 +403,7 @@ window.addEventListener("keydown", async (ev) => {
 
   if (ev.key.toLowerCase() === "s") {
     ev.preventDefault();
-    downloadText("note.md", vditor.getValue());
+    downloadText("note.md", getCurrentMarkdown());
     toast("Downloaded");
     return;
   }
@@ -328,7 +412,7 @@ window.addEventListener("keydown", async (ev) => {
     ev.preventDefault();
     const mode = localStorage.getItem(storage.keyMode) || "sv";
     if (mode !== "sv") {
-      toast("Preview toggle is SV only");
+      toast(mode === "viewer" ? "Preview toggle is not available in Viewer mode" : "Preview toggle is SV only");
       return;
     }
     const root = document.getElementById("vditor");
@@ -340,7 +424,7 @@ window.addEventListener("keydown", async (ev) => {
 
   if (ev.shiftKey && ev.key.toLowerCase() === "c") {
     ev.preventDefault();
-    const md = vditor.getValue();
+    const md = getCurrentMarkdown();
     await navigator.clipboard.writeText(md);
     toast("Copied");
   }

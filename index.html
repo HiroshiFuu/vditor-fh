@@ -4,12 +4,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vditor (SV/IR) on GitHub Pages</title>
+  <title>Vditor (SV/IR/Viewer) on GitHub Pages</title>
 
-  <!-- Vditor CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor@3.11.2/dist/index.css" />
-
-  <!-- App styles -->
   <link rel="stylesheet" href="./style.css" />
 </head>
 
@@ -25,6 +22,7 @@
       <div class="segmented" role="group" aria-label="Mode">
         <button class="seg-btn" id="btn-mode-sv" type="button">SV</button>
         <button class="seg-btn" id="btn-mode-ir" type="button">IR</button>
+        <button class="seg-btn" id="btn-mode-viewer" type="button">Viewer</button>
       </div>
 
       <button class="btn" id="btn-toggle-preview" type="button" title="Ctrl+P">
@@ -42,8 +40,14 @@
   </header>
 
   <main class="workspace">
-    <div class="card">
+    <aside class="viewer-sidebar" aria-label="Viewer navigation">
+      <div class="viewer-sidebar__header">Contents</div>
+      <nav id="viewer-nav" class="viewer-nav"></nav>
+    </aside>
+
+    <div class="card" id="editor-card">
       <div id="vditor"></div>
+      <div id="viewer-content" class="viewer-content hidden" aria-live="polite"></div>
     </div>
   </main>
 
