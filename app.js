@@ -62,6 +62,25 @@ function setWorkspaceMode(mode) {
   }
 }
 
+function togglePreviewMode() {
+  const mode = localStorage.getItem(storage.keyMode) || "sv";
+
+  if (mode === "viewer") {
+    setModeAndReload("ir");
+    return;
+  }
+
+  if (mode === "ir") {
+    setModeAndReload("viewer");
+    return;
+  }
+
+  const root = document.getElementById("vditor");
+  const hidden = localStorage.getItem(storage.keyPreviewHidden) === "1";
+  applyPreviewHidden(root, !hidden);
+  toast(!hidden ? "Preview hidden" : "Preview shown");
+}
+
 function setupSvSplitter(vditorRootEl, opts = {}) {
   const ratioKey = opts.ratioKey || storage.keyRatio;
   const minRatio = opts.minRatio ?? 0.22;
@@ -375,10 +394,17 @@ document.getElementById("btn-mode-viewer").addEventListener("click", () => setMo
 
 document.getElementById("btn-toggle-preview").addEventListener("click", () => {
   const mode = localStorage.getItem(storage.keyMode) || "sv";
-  if (mode !== "sv") {
-    toast(mode === "viewer" ? "Preview toggle is not available in Viewer mode" : "Preview toggle is SV only");
+
+  if (mode === "viewer") {
+    setModeAndReload("ir");
     return;
   }
+
+  if (mode === "ir") {
+    setModeAndReload("viewer");
+    return;
+  }
+
   const root = document.getElementById("vditor");
   const hidden = localStorage.getItem(storage.keyPreviewHidden) === "1";
   applyPreviewHidden(root, !hidden);
@@ -411,10 +437,17 @@ window.addEventListener("keydown", async (ev) => {
   if (ev.key.toLowerCase() === "p") {
     ev.preventDefault();
     const mode = localStorage.getItem(storage.keyMode) || "sv";
-    if (mode !== "sv") {
-      toast(mode === "viewer" ? "Preview toggle is not available in Viewer mode" : "Preview toggle is SV only");
+
+    if (mode === "viewer") {
+      setModeAndReload("ir");
       return;
     }
+
+    if (mode === "ir") {
+      setModeAndReload("viewer");
+      return;
+    }
+
     const root = document.getElementById("vditor");
     const hidden = localStorage.getItem(storage.keyPreviewHidden) === "1";
     applyPreviewHidden(root, !hidden);
