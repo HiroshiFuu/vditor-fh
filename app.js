@@ -49,6 +49,7 @@ function setWorkspaceMode(mode) {
   if (!workspace || !editorCard) return;
 
   const isViewer = mode === "viewer";
+  document.body.classList.toggle("viewer-mode", isViewer);
   workspace.classList.toggle("viewer-mode", isViewer);
   editorCard.classList.toggle("viewer-card", isViewer);
 
@@ -180,16 +181,39 @@ function renderViewerNav() {
     return;
   }
 
+  const rootList = document.createElement("ul");
+  rootList.className = "viewer-nav-list";
+  const stack = [rootList];
+
   headings.forEach((heading) => {
+    const level = Number(heading.tagName.replace("H", ""));
+    const parentList = stack[level - 1] || rootList;
+
+    while (stack.length > level) {
+      stack.pop();
+    }
+
+    const item = document.createElement("li");
+    item.className = "viewer-nav-item-wrap";
+
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "viewer-nav-item";
     btn.textContent = heading.textContent.trim();
+    btn.style.paddingLeft = `${(level - 1) * 10 + 10}px`;
     btn.addEventListener("click", () => {
       heading.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-    nav.appendChild(btn);
+
+    const childList = document.createElement("ul");
+    childList.className = "viewer-nav-sublist";
+    item.appendChild(btn);
+    item.appendChild(childList);
+    parentList.appendChild(item);
+    stack[level] = childList;
   });
+
+  nav.appendChild(rootList);
 }
 
 function setupViewerMode() {
